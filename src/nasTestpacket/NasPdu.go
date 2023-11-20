@@ -82,7 +82,7 @@ func GetPduSessionEstablishmentRequest(pduSessionId uint8) []byte {
 		nasMessage.Epd5GSSessionManagementMessage)
 	pduSessionEstablishmentRequest.SetMessageType(nas.MsgTypePDUSessionEstablishmentRequest)
 	pduSessionEstablishmentRequest.PDUSessionID.SetPDUSessionID(pduSessionId)
-	pduSessionEstablishmentRequest.PTI.SetPTI(0x00)
+	pduSessionEstablishmentRequest.PTI.SetPTI(0x01)
 	pduSessionEstablishmentRequest.IntegrityProtectionMaximumDataRate.
 		SetMaximumDataRatePerUEForUserPlaneIntegrityProtectionForDownLink(0xff)
 	pduSessionEstablishmentRequest.IntegrityProtectionMaximumDataRate.

@@ -490,8 +490,8 @@ func (ue *RanUeContext) GetBearerType() uint8 {
 	if ue.AnType == models.AccessType__3_GPP_ACCESS {
 		return security.Bearer3GPP
 	} else if ue.AnType == models.AccessType_NON_3_GPP_ACCESS {
-		return security.BearerNon3GPP
+		return security.Bearer3GPP
 	} else {
-		return security.OnlyOneBearer
+		return security.Bearer3GPP
 	}
 }

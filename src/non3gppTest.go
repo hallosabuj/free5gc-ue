@@ -33,7 +33,7 @@ import (
 
 var (
 	n3iwfInfo_IPSecIfaceAddr     = "192.168.56.124"
-	n3ueInfo_IPSecIfaceAddr      = "192.168.56.123"
+	n3ueInfo_IPSecIfaceAddr      = "192.168.56.128"
 	n3ueInfo_SmPolicy_SNSSAI_SST = "1"
 	n3ueInfo_SmPolicy_SNSSAI_SD  = "302010"
 	n3ueInfo_IPSecIfaceName      = "enp0s8"
@@ -1548,6 +1548,8 @@ func TestNon3GPPUE() {
 		IP: ueInnerAddr.IP,
 	}
 	tcpConnWithN3IWF, err := net.DialTCP("tcp", localTCPAddr, n3iwfNASAddr)
+	fmt.Println("LocalTCPAddress ========", localTCPAddr.IP.String())
+	fmt.Println("N3IWFNASAddress ========", n3iwfNASAddr.IP.String())
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -1591,7 +1593,7 @@ func TestNon3GPPUE() {
 	// UE request PDU session setup
 	sNssai := models.Snssai{
 		Sst: 1,
-		Sd:  "fedcba",
+		Sd:  "010203",
 	}
 
 	var pduSessionId uint8 = 1
