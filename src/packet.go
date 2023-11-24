@@ -30,6 +30,14 @@ func DecodePDUSessionEstablishmentAccept(ue *RanUeContext, length int, buffer []
 	if err != nil {
 		return nil, fmt.Errorf("NAS Decode Fail: %+v", err)
 	}
+	if nasMsg.GmmMessage == nil {
+		fmt.Println("Null GmmMessage. Returning.", nasMsg.GmmMessage)
+		return nil, nil
+	}
+	if nasMsg.GmmMessage.DLNASTransport == nil {
+		fmt.Println("Null GmmMessage DLNASTransport Returning.", nasMsg.GmmMessage)
+		return nil, nil
+	}
 
 	// Retrieve GSM from GmmMessage.DLNASTransport.PayloadContainer and decode
 	payloadContainer := nasMsg.GmmMessage.DLNASTransport.PayloadContainer

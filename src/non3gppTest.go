@@ -1733,23 +1733,30 @@ func TestNon3GPPUE() {
 	var pduAddress net.IP
 
 	// Read NAS from N3IWF
-	if n, err := tcpConnWithN3IWF.Read(buffer); err != nil {
-		fmt.Printf("Read NAS Message Fail:%+v\n", err)
-	} else {
-		nasMsg, err := DecodePDUSessionEstablishmentAccept(ue, n, buffer)
-		if err != nil {
-			fmt.Printf("DecodePDUSessionEstablishmentAccept Fail: %+v\n", err)
-		}
+	for {
+		fmt.Printf("Waiting for NAS Message...\n")
+		if n, err := tcpConnWithN3IWF.Read(buffer); err != nil {
+			fmt.Printf("Read NAS Message Fail:%+v\n", err)
+		} else {
+			nasMsg, err := DecodePDUSessionEstablishmentAccept(ue, n, buffer)
+			if err != nil {
+				fmt.Printf("DecodePDUSessionEstablishmentAccept Fail: %+v\n", err)
+			}
+			if nasMsg == nil {
+				fmt.Printf("DecodePDUSessionEstablishmentAccept returned null msg. continuing...:\n")
+				continue
+			}
+			spew.Config.Indent = "\t"
+			nasStr := spew.Sdump(nasMsg)
+			fmt.Println("Dump DecodePDUSessionEstablishmentAccept:\n", nasStr)
+			pduAddress, err = GetPDUAddress(nasMsg.GsmMessage.PDUSessionEstablishmentAccept)
+			if err != nil {
+				fmt.Printf("GetPDUAddress Fail: %+v\n", err)
+			}
 
-		spew.Config.Indent = "\t"
-		nasStr := spew.Sdump(nasMsg)
-		fmt.Println("Dump DecodePDUSessionEstablishmentAccept:\n", nasStr)
-		pduAddress, err = GetPDUAddress(nasMsg.GsmMessage.PDUSessionEstablishmentAccept)
-		if err != nil {
-			fmt.Printf("GetPDUAddress Fail: %+v\n", err)
+			fmt.Printf("PDU Address: %s\n", pduAddress.String())
+			break
 		}
-
-		fmt.Printf("PDU Address: %s\n", pduAddress.String())
 	}
 
 	var linkGRE netlink.Link
@@ -1777,31 +1784,33 @@ func TestNon3GPPUE() {
 		fmt.Println(err)
 	}
 
-	for i := 1; i <= 3; i++ {
-		var (
-			ifaces []netlink.Link
-			err    error
-		)
-		fmt.Printf("%d times PDU Session Est Request Start\n", i+1)
-		if ifaces, err = sendPduSessionEstablishmentRequest(pduSessionId+uint8(i), ue, n3ue, ikeSecurityAssociation, udpConnection, tcpConnWithN3IWF); err != nil {
-			fmt.Printf("Session Est Request Fail: %+v\n", err)
-		} else {
-			fmt.Printf("Create %d interfaces\n", len(ifaces))
-		}
-
-		defer func() {
-			for _, iface := range ifaces {
-				if err := netlink.LinkDel(iface); err != nil {
-					fmt.Printf("Delete interface %s fail: %+v\n", iface.Attrs().Name, err)
-				} else {
-					fmt.Printf("Delete interface: %s\n", iface.Attrs().Name)
-				}
+	/*
+		for i := 1; i <= 3; i++ {
+			var (
+				ifaces []netlink.Link
+				err    error
+			)
+			fmt.Printf("%d times PDU Session Est Request Start\n", i+1)
+			if ifaces, err = sendPduSessionEstablishmentRequest(pduSessionId+uint8(i), ue, n3ue, ikeSecurityAssociation, udpConnection, tcpConnWithN3IWF); err != nil {
+				fmt.Printf("Session Est Request Fail: %+v\n", err)
+			} else {
+				fmt.Printf("Create %d interfaces\n", len(ifaces))
 			}
-		}()
-	}
+
+			defer func() {
+				for _, iface := range ifaces {
+					if err := netlink.LinkDel(iface); err != nil {
+						fmt.Printf("Delete interface %s fail: %+v\n", iface.Attrs().Name, err)
+					} else {
+						fmt.Printf("Delete interface: %s\n", iface.Attrs().Name)
+					}
+				}
+			}()
+		}
+	*/
 
 	// Ping remote
-	pinger, err := ping.NewPinger("10.60.0.101")
+	pinger, err := ping.NewPinger("10.45.0.1")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -1822,9 +1831,9 @@ func TestNon3GPPUE() {
 			stats.MinRtt, stats.AvgRtt, stats.MaxRtt, stats.StdDevRtt)
 	}
 
-	pinger.Count = 5
+	pinger.Count = 1
 	pinger.Timeout = 10 * time.Second
-	pinger.Source = "10.60.0.1"
+	pinger.Source = pduAddress.String()
 
 	time.Sleep(3 * time.Second)
 
@@ -1835,8 +1844,10 @@ func TestNon3GPPUE() {
 	stats := pinger.Statistics()
 	if stats.PacketsSent != stats.PacketsRecv {
 		fmt.Println("Ping Failed")
+		time.Sleep(500 * time.Second)
 		return
 	}
+	time.Sleep(500 * time.Second)
 }
 
 func setUESecurityCapability(ue *RanUeContext) (UESecurityCapability *nasType.UESecurityCapability) {
