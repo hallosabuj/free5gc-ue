@@ -19,10 +19,11 @@ import (
 	"github.com/vishvananda/netlink"
 	"golang.org/x/sys/unix"
 
-	"github.com/free5gc/n3iwf/pkg/context"
-	"github.com/free5gc/n3iwf/pkg/ike/handler"
-	"github.com/free5gc/n3iwf/pkg/ike/message"
-	"github.com/free5gc/n3iwf/pkg/ike/xfrm"
+	"ue/lib/pkg/context"
+	"ue/lib/pkg/ike/handler"
+	"ue/lib/pkg/ike/message"
+	"ue/lib/pkg/ike/xfrm"
+
 	"github.com/free5gc/nas"
 	"github.com/free5gc/nas/nasMessage"
 	"github.com/free5gc/nas/nasType"
